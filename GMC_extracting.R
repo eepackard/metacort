@@ -58,16 +58,23 @@ length(unique(jgi_alignment_hits_GMC$Hit)) #so only 23 actually
 
 length(which(GMC$proteinId %in% jgi_alignment_hits_GMC$Hit))#and all of those I already identifed
 
-jgi_alignment_hits_GMC[which(jgi_alignment_hits_GMC$Hit == "1984530"),]
+##now I can select which GMC it is based on highest blast
+GMC_protID_list<-as.list(GMC$proteinId)
+Blast_result<-list()
+for (i in 1:nrow(GMC)){
+Blast_result[[i]]<-jgi_alignment_hits_GMC[which(jgi_alignment_hits_GMC$Hit == GMC_protID_list[[i]]),]
+Blast_result[[i]]<-Blast_result[[i]][which(Blast_result[[i]]$`% Hit Identity` == max(Blast_result[[i]]$`% Hit Identity`)),c(1,3,8,9)]
+}
+
+blast<-bind_rows(Blast_result)
+GMC$blast<- blast[match(GMC$proteinId,blast$Hit),]$`Query Name`
+
+GMC$ecNum <-if_else(grepl("Alcohol oxidase",GMC$blast),"1.1.3.13",if_else(grepl("Cellobiose dehydrogenase",GMC$blast),"1.1.99.18",if_else(grepl("Aryl-alcohol",GMC$blast),"1.1.3.7",GMC$ecNum)))
+
 
 #not in blast but assigned by EC and/or KOG
 nohit_GMC<-GMC[-which(GMC$proteinId %in% jgi_alignment_hits_GMC$Hit),]
 
-#add a little more info from JGI - classifiaction into CAyze
-
-GMC$CAZy<-rep(NA,nrow(GMC))
-GMC[which(GMC$ecNum == "1.1.3.13"),]$CAZy <- c(rep("AA3_3",11))
-GMC[which(GMC$proteinId %in% c("1984530","1890302","1890269","1890283","1871886","1861140","1850618","1827624","1827638","1827598","1827566","1825584","1785048","1657687","1693682")),]$CAZy <- c(rep("AA3_2",15))
 
 #now see if they are excreted
 
