@@ -1,5 +1,6 @@
 library(readr)
 library(tidyverse)
+library(vegan)
 
 #read in ----
 #express_table<-read_csv("clean_data/gene_interest_express.csv")
@@ -29,13 +30,13 @@ ggplot(express_table_GC)+
   geom_boxplot(aes(x=gene,y=sum_TPM,colour = level))+
   theme_classic()
 
-ggplot(express_table_GC)+
-  geom_boxplot(aes(x=gene,y=sum_norm,colour = level))+
-  theme_classic()
-
 #lets go with the GC bias corrected data
 
 express_table<-express_table_GC
+
+##block 19 has very high B_tubulin so that normalization is way off - remove that sample for now
+
+#express_table<-express_table[-which(express_table$Block == "block19"),]
 
 # high vs low ----
 ggplot(express_table)+
@@ -54,7 +55,6 @@ ggplot(express_table[which(express_table$gene == "KGD"),])+
   geom_point(aes(fill = level,group = Block,x=level,y=norm_reads))+
   theme_classic()
 
-
 ggplot(express_table[which(express_table$gene == "GT48"),])+#& express_table$Block < 15
   geom_boxplot(aes(x=level,y=norm_reads,fill = level))+
   geom_line(aes(group = Block,x=level,y=norm_reads))+
@@ -67,7 +67,19 @@ ggplot(express_table[which(express_table$gene == "SOD"),])+
   geom_point(aes(fill = level,group = Block,x=level,y=norm_reads))+
   theme_classic()
 
-ggplot(express_table[which(express_table$gene == "GMC"),])+
+ggplot(express_table[which(express_table$gene == "GMC_1.1.3.13"),])+
+  geom_boxplot(aes(x=level,y=norm_reads,fill = level))+
+  geom_line(aes(group = Block,x=level,y=norm_reads))+
+  geom_point(aes(fill = level,group = Block,x=level,y=norm_reads))+
+  theme_classic()
+
+ggplot(express_table[which(express_table$gene == "GMC_1.1.3.7"),])+
+  geom_boxplot(aes(x=level,y=norm_reads,fill = level))+
+  geom_line(aes(group = Block,x=level,y=norm_reads))+
+  geom_point(aes(fill = level,group = Block,x=level,y=norm_reads))+
+  theme_classic()
+
+ggplot(express_table[which(express_table$gene == "GMC_1.1.99.18"),])+
   geom_boxplot(aes(x=level,y=norm_reads,fill = level))+
   geom_line(aes(group = Block,x=level,y=norm_reads))+
   geom_point(aes(fill = level,group = Block,x=level,y=norm_reads))+
@@ -115,6 +127,12 @@ ggplot(express_table[which(express_table$gene == "PROT"),])+
   geom_point(aes(fill = level,group = Block,x=level,y=norm_reads))+
   theme_classic()
 
+ggplot(express_table[which(express_table$gene == "APEP"),])+
+  geom_boxplot(aes(x=level,y=norm_reads,fill = level))+
+  geom_line(aes(group = Block,x=level,y=norm_reads))+
+  geom_point(aes(fill = level,group = Block,x=level,y=norm_reads))+
+  theme_classic()
+
 #reduced to top 8 ----
 ##there is some Block/blocks where the difference is much stronger - lets limit to those where difference in norm_readsalized difference is greater than 2 
 which(express_table[which(express_table$gene == "MnP" & express_table$level == "high"),]$norm_reads-express_table[which(express_table$gene == "MnP" & express_table$level == "low"),]$norm_reads > 2)
@@ -123,6 +141,7 @@ which(express_table[which(express_table$gene == "MnP" & express_table$level == "
 
 express_table$Block<-gsub("block","",express_table$Block)
 express_table.2<-express_table[which(express_table$Block %in% c(1,4,7,8,11,12,15,20)),]
+express_table.2<-express_table[-which(express_table$Block %in% c(9)),]
 
 ggplot(express_table.2)+
   geom_boxplot(aes(x=gene,y=norm_reads,colour = level))+
@@ -134,7 +153,25 @@ ggplot(express_table.2[which(express_table.2$gene == "MnP"),])+
   geom_point(aes(fill = level,group = Block,x=level,y=norm_reads))+
   theme_classic()
 
-ggplot(express_table.2[which(express_table.2$gene == "GMC"),])+
+ggplot(express_table.2[which(express_table.2$gene == "KGD"),])+
+  geom_boxplot(aes(x=level,y=norm_reads,fill = level))+
+  geom_line(aes(group = Block,x=level,y=norm_reads))+
+  geom_point(aes(fill = level,group = Block,x=level,y=norm_reads))+
+  theme_classic()
+
+ggplot(express_table.2[which(express_table.2$gene == "GMC_1.1.3.13"),])+
+  geom_boxplot(aes(x=level,y=norm_reads,fill = level))+
+  geom_line(aes(group = Block,x=level,y=norm_reads))+
+  geom_point(aes(fill = level,group = Block,x=level,y=norm_reads))+
+  theme_classic()
+
+ggplot(express_table.2[which(express_table.2$gene == "GMC_1.1.3.7"),])+
+  geom_boxplot(aes(x=level,y=norm_reads,fill = level))+
+  geom_line(aes(group = Block,x=level,y=norm_reads))+
+  geom_point(aes(fill = level,group = Block,x=level,y=norm_reads))+
+  theme_classic()
+
+ggplot(express_table.2[which(express_table.2$gene == "GMC_1.1.99.18"),])+
   geom_boxplot(aes(x=level,y=norm_reads,fill = level))+
   geom_line(aes(group = Block,x=level,y=norm_reads))+
   geom_point(aes(fill = level,group = Block,x=level,y=norm_reads))+
@@ -200,6 +237,12 @@ ggplot(express_table.2[which(express_table.2$gene == "PROT"),])+
   geom_point(aes(fill = level,group = Block,x=level,y=norm_reads))+
   theme_classic()
 
+ggplot(express_table.2[which(express_table.2$gene == "APEP"),])+
+  geom_boxplot(aes(x=level,y=norm_reads,fill = level))+
+  geom_line(aes(group = Block,x=level,y=norm_reads))+
+  geom_point(aes(fill = level,group = Block,x=level,y=norm_reads))+
+  theme_classic()
+
 
 #scatterplots ----
 
@@ -225,14 +268,33 @@ plot(norm_wide$MnP,norm_wide$CHSN)+text(norm_wide$MnP,norm_wide$CHSN,labels = pa
 plot(norm_wide$CHSN,norm_wide$NAGCHIT)+text(norm_wide$CHSN,norm_wide$NAGCHIT,labels = paste(norm_wide$level,norm_wide$Block))
 #proteases vs mnp
 plot(norm_wide$MnP,norm_wide$PROT)+text(norm_wide$MnP,norm_wide$PROT,labels = paste(norm_wide$level,norm_wide$Block))
+#proteases vs aminopeptidaes
+plot(norm_wide$APEP,norm_wide$PROT)+text(norm_wide$APEP,norm_wide$PROT,labels = paste(norm_wide$level,norm_wide$Block))
+#laccases vs mnp
+plot(norm_wide$MnP,norm_wide$LACC)+text(norm_wide$MnP,norm_wide$LACC,labels = paste(norm_wide$level,norm_wide$Block))
 #growth vs respiration
 plot(norm_wide$GT48,norm_wide$KGD)+text(norm_wide$GT48,norm_wide$KGD,labels = paste(norm_wide$level,norm_wide$Block))
+
+
 #Catalase vs super oxide dismutase
 plot(norm_wide$SOD,norm_wide$CAT)+text(norm_wide$SOD,norm_wide$CAT,labels = paste(norm_wide$level,norm_wide$Block))
+#GMC vs MnP
+plot(norm_wide$GMC_1.1.3.13,norm_wide$MnP)+text(norm_wide$GMC_1.1.3.13,norm_wide$MnP,labels = paste(norm_wide$level,norm_wide$Block))
+plot(norm_wide$GMC_1.1.3.7,norm_wide$MnP)+text(norm_wide$GMC_1.1.3.7,norm_wide$MnP,labels = paste(norm_wide$level,norm_wide$Block))
+plot(norm_wide$GMC_1.1.99.18,norm_wide$MnP)+text(norm_wide$GMC_1.1.99.18,norm_wide$MnP,labels = paste(norm_wide$level,norm_wide$Block))
+#GMC vs GMC
+plot(norm_wide$GMC_1.1.3.13,norm_wide$GMC_1.1.3.7)+text(norm_wide$GMC_1.1.3.13,norm_wide$GMC_1.1.3.7,labels = paste(norm_wide$level,norm_wide$Block))
+plot(norm_wide$GMC_1.1.3.13,norm_wide$GMC_1.1.99.18)+text(norm_wide$GMC_1.1.3.13,norm_wide$GMC_1.1.99.18,labels = paste(norm_wide$level,norm_wide$Block))
+plot(norm_wide$GMC_1.1.3.7,norm_wide$GMC_1.1.99.18)+text(norm_wide$GMC_1.1.3.7,norm_wide$GMC_1.1.99.18,labels = paste(norm_wide$level,norm_wide$Block))
+#GMC vs CRO
+plot(norm_wide$GMC_1.1.3.13,norm_wide$GLY)+text(norm_wide$GMC_1.1.3.13,norm_wide$GLY,labels = paste(norm_wide$level,norm_wide$Block))
+plot(norm_wide$GMC_1.1.3.7,norm_wide$GLY)+text(norm_wide$GMC_1.1.3.7,norm_wide$GLY,labels = paste(norm_wide$level,norm_wide$Block))
+plot(norm_wide$GMC_1.1.99.18,norm_wide$GLY)+text(norm_wide$GMC_1.1.99.18,norm_wide$GLY,labels = paste(norm_wide$level,norm_wide$Block))
+
 
 #CUE vs MnP
-norm_wide$CUE<-norm_wide$GT48/norm_wide$KGD
-norm_wide_sub$CUE<-norm_wide_sub$GT48/norm_wide_sub$KGD
+norm_wide$CUE<-norm_wide$KGD/norm_wide$GT48
+norm_wide_sub$CUE<-norm_wide_sub$KGD/norm_wide_sub$GT48
 plot(norm_wide$MnP,norm_wide$CUE)+text(norm_wide$MnP,norm_wide$CUE,labels = paste(norm_wide$level,norm_wide$Block))
 plot(norm_wide_sub$MnP,norm_wide_sub$CUE)+text(norm_wide_sub$MnP,norm_wide_sub$CUE,labels = paste(norm_wide_sub$level,norm_wide_sub$Block))
 
@@ -248,6 +310,11 @@ ggplot(norm_wide_sub)+
   geom_point(aes(fill = level,group = Block,x=level,y=CUE))+
   theme_classic()
 
+
+#CUE vs GMC
+plot(norm_wide$CUE,norm_wide$GMC_1.1.3.13)+text(norm_wide$CUE,norm_wide$GMC_1.1.3.13,labels = paste(norm_wide$level,norm_wide$Block))
+#CUE vs PROT
+plot(norm_wide$CUE,norm_wide$PROT)+text(norm_wide$CUE,norm_wide$PROT,labels = paste(norm_wide$level,norm_wide$Block))
 
 ggplot(norm_wide)+
   geom_point(aes(x=CUE,y=MnP))+
@@ -267,3 +334,40 @@ ggplot(prd, aes(x = CUE, y = fit)) +
   geom_smooth(aes(ymin = lci, ymax = uci), stat = "identity") +
   geom_point(data = norm_wide, aes(x = CUE, y = MnP))
 
+##multivvariate analysis ----
+
+multi<- metaMDS(norm_wide[,-c(1,2,3,4)],autotransform = FALSE)
+multi
+data.scores <- as.data.frame(scores(multi,"sites"))  #Using the scores function from vegan to extract the site scores and convert to a data.frame
+data.scores$site <- rownames(data.scores)  # create a column of site names, from the rownames of data.scores
+data.scores$grp <- norm_wide$level  #  add the grp variable created earlier
+head(data.scores)
+gene.scores <- as.data.frame(scores(multi, "species"))  #Using the scores function from vegan to extract the species scores and convert to a data.frame
+gene.scores$species <- rownames(gene.scores)  # create a column of species, from the rownames of species.scores
+head(gene.scores) 
+
+ggplot() + 
+  geom_text(data=gene.scores,aes(x=NMDS1,y=NMDS2,label=species),alpha=0.5) +  # add the species labels
+  geom_point(data=data.scores,aes(x=NMDS1,y=NMDS2,shape=grp,colour=grp),size=3) + # add the point markers
+  geom_text(data=data.scores,aes(x=NMDS1,y=NMDS2,label=site),size=6,vjust=0) +  # add the site labels
+  scale_colour_manual(values=c("high" = "red", "low" = "blue")) +
+  coord_equal() +
+  theme_bw()
+
+multi<- metaMDS(norm_wide_sub[,-c(1,2,3,4,13)],autotransform = FALSE)
+multi
+data.scores <- as.data.frame(scores(multi,"sites"))  #Using the scores function from vegan to extract the site scores and convert to a data.frame
+data.scores$site <- rownames(data.scores)  # create a column of site names, from the rownames of data.scores
+data.scores$grp <- norm_wide_sub$level  #  add the grp variable created earlier
+head(data.scores)
+gene.scores <- as.data.frame(scores(multi, "species"))  #Using the scores function from vegan to extract the species scores and convert to a data.frame
+gene.scores$species <- rownames(gene.scores)  # create a column of species, from the rownames of species.scores
+head(gene.scores) 
+
+ggplot() + 
+  geom_text(data=gene.scores,aes(x=NMDS1,y=NMDS2,label=species),alpha=0.5) +  # add the species labels
+  geom_point(data=data.scores,aes(x=NMDS1,y=NMDS2,shape=grp,colour=grp),size=3) + # add the point markers
+  geom_text(data=data.scores,aes(x=NMDS1,y=NMDS2,label=site),size=6,vjust=0) +  # add the site labels
+  scale_colour_manual(values=c("high" = "red", "low" = "blue")) +
+  coord_equal() +
+  theme_bw()
