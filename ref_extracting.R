@@ -10,9 +10,9 @@ library(tidyverse)
 express_all<-read_csv("clean_data/expression_salmon_quant_all.csv")
 
 
-Coromn1_FilteredModels1_kog <- read_delim("raw_data/Coromn1_FilteredModels1_kog_2025-04-22.tab", 
-                                          delim = "\t", escape_double = FALSE, 
-                                          trim_ws = TRUE)
+Coromn1_FilteredModels1_ec <- read_delim("raw_data/Coromn1_FilteredModels1_ec_2025-04-22.tab", 
+                                         delim = "\t", escape_double = FALSE, 
+                                         trim_ws = TRUE)
 
 
 BTub_1<- express_all[which(express_all$protID %in% c("1845132")),] #,"1851235"find the data for Beta tubulin
@@ -23,12 +23,20 @@ TEF_2<- express_all[which(express_all$protID %in% c("1753879")),]
 
 UBC<- express_all[which(express_all$protID %in% c("949941")),] #
 
+KGD_prots<-Coromn1_FilteredModels1_ec[which(Coromn1_FilteredModels1_ec$ecNum == "1.2.4.2"),]
+
+KGD<- express_all[which(express_all$protID %in% KGD_prots$proteinId),]
+
+KGD<- KGD |>  group_by(level,Block) |> summarise(TPM = sum(TPM),NumReads = sum(NumReads))
+KGD$protID <- rep(NA,nrow(KGD))
+KGD <- KGD[,c(1,5,3,4,2)]
+
 AppendMe <- function(dfNames) {
   do.call(rbind, lapply(dfNames, function(x) {
     cbind(get(x), gene = x)
   }))
 }
-GENES<-AppendMe(c("BTub_1","BTub_2","TEF_1","TEF_2","UBC"))
+GENES<-AppendMe(c("BTub_1","BTub_2","TEF_1","TEF_2","UBC","KGD"))
 
 plot(as.factor(BTub_1$level),BTub_1$NumReads)
 plot(as.factor(BTub_2$level),BTub_2$NumReads)
@@ -71,3 +79,5 @@ wide_reads<-GENES[,-c(2,3)] |>  pivot_wider(names_from = "gene",values_from = Nu
 wide_reads$levelblock <- paste(wide_reads$level,wide_reads$Block,sep = "")
 
 write_csv(GENES,"clean_data/ref_clean.csv")
+write_csv(wide_reads,"clean_data/ref_clean_wide.csv")
+write_csv(wide_TPM,"clean_data/ref_clean_wide_TPM.csv")
