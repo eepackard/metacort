@@ -17,14 +17,18 @@ dPCR<-dPCR[match(paste(norm_wide$Block,norm_wide$level),paste(dPCR$Block,dPCR$le
 norm_wide$Block == dPCR$Block
 sum_wide$Block == dPCR$Block
 
-plot(norm_wide$MnP,dPCR$MnP_conc_cps_µl)+text(norm_wide$MnP,dPCR$MnP_conc_cps_µl,labels = paste(norm_wide$level,norm_wide$Block))
-plot(sum_wide$MnP,dPCR$MnP_conc_cps_µl)+text(sum_wide$MnP,dPCR$MnP_conc_cps_µl,labels = paste(sum_wide$level,sum_wide$Block))
-
-plot(sum_wide$KGD,dPCR$KGD_conc_cps_µl)+text(sum_wide$KGD,dPCR$KGD_conc_cps_µl,labels = paste(sum_wide$level,sum_wide$Block))
-
 plot(sum_wide$MnP/sum_wide$KGD,dPCR$ratio)+text(sum_wide$MnP/sum_wide$KGD,dPCR$ratio,labels = paste(sum_wide$level,sum_wide$Block))
 plot(norm_wide$MnP/norm_wide$KGD,dPCR$ratio)+text(norm_wide$MnP/norm_wide$KGD,dPCR$ratio,labels = paste(norm_wide$level,norm_wide$Block))
 
+summary(lm(norm_wide$MnP/norm_wide$KGD~dPCR$ratio))
 #pretty good linear relationship here
 
-plot(norm_wide$MnP/norm_wide$KGD,sum_wide$MnP/sum_wide$KGD)+text(norm_wide$MnP/norm_wide$KGD,sum_wide$MnP/sum_wide$KGD,labels = paste(norm_wide$level,norm_wide$Block))
+plot_df<-as.data.frame(cbind(norm_wide$MnP/norm_wide$KGD,dPCR$ratio))
+colnames(plot_df)<-c("RNA-seq MnP/KGD gene expression ratio", "dPCR MnP/KGD copy numbers ratio")
+
+tiff("figures/supp_ratios.tiff")
+ggplot(aes(x= `RNA-seq MnP/KGD gene expression ratio`, y= `dPCR MnP/KGD copy numbers ratio`),data = plot_df)+
+  geom_point()+
+  geom_smooth(method = "lm")+
+  theme_classic()
+
