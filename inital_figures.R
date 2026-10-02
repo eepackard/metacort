@@ -4,15 +4,12 @@ library(vegan)
 
 #read in ----
 #express_table<-read_csv("clean_data/gene_interest_express.csv")
-express_table_GC<-read_csv("clean_data/gene_interest_express_GC.csv")
+express_table<-read_csv("clean_data/gene_interest_express_GC.csv")
 
-#express_table$gene<-as.factor(express_table$gene)
-#express_table$level<-as.factor(express_table$level)
-#express_table$Block<-as.factor(express_table$Block)
+express_table$gene<-as.factor(express_table$gene)
+express_table$level<-as.factor(express_table$level)
+express_table$Block<-as.factor(express_table$Block)
 
-express_table_GC$gene<-as.factor(express_table_GC$gene)
-express_table_GC$level<-as.factor(express_table_GC$level)
-express_table_GC$Block<-as.factor(express_table_GC$Block)
 
 # compare with and without GC correction ----
 #plot(express_table$norm_reads,express_table_GC$norm_reads)+abline(a=0,b=1) #looks like 1:1
@@ -26,13 +23,11 @@ express_table_GC$Block<-as.factor(express_table_GC$Block)
 #  geom_boxplot(aes(x=gene,y=sum_TPM,colour = level))+
 #  theme_classic()
 
-ggplot(express_table_GC)+
-  geom_boxplot(aes(x=gene,y=sum_TPM,colour = level))+
-  theme_classic()
+#ggplot(express_table_GC)+
+#  geom_boxplot(aes(x=gene,y=sum_TPM,colour = level))+
+#  theme_classic()
 
 #lets go with the GC bias corrected data
-
-express_table<-express_table_GC
 
 ##block 19 has very high B_tubulin so that normalization is way off - remove that sample for now
 
@@ -40,240 +35,310 @@ express_table<-express_table_GC
 
 # high vs low ----
 ggplot(express_table)+
-  geom_boxplot(aes(x=gene,y=norm_reads,colour = level))+
+  geom_boxplot(aes(x=gene,y=sum_TPM,colour = level))+
   theme_classic()
 
 ggplot(express_table[which(express_table$gene == "MnP"),])+
-  geom_boxplot(aes(x=level,y=norm_reads,fill = level))+
-  geom_line(aes(group = Block,x=level,y=norm_reads))+
-  geom_point(aes(fill = level,group = Block,x=level,y=norm_reads))+
+  geom_boxplot(aes(x=level,y=sum_TPM,fill = level))+
+  geom_line(aes(group = Block,x=level,y=sum_TPM))+
+  geom_point(aes(fill = level,group = Block,x=level,y=sum_TPM))+
   theme_classic()
 
 ggplot(express_table[which(express_table$gene == "KGD"),])+
-  geom_boxplot(aes(x=level,y=norm_reads,fill = level))+
-  geom_line(aes(group = Block,x=level,y=norm_reads))+
-  geom_point(aes(fill = level,group = Block,x=level,y=norm_reads))+
+  geom_boxplot(aes(x=level,y=sum_reads,fill = level))+
+  geom_line(aes(group = Block,x=level,y=sum_reads))+
+  geom_point(aes(fill = level,group = Block,x=level,y=sum_reads))+
   theme_classic()
 
 ggplot(express_table[which(express_table$gene == "GT48"),])+#& express_table$Block < 15
-  geom_boxplot(aes(x=level,y=norm_reads,fill = level))+
-  geom_line(aes(group = Block,x=level,y=norm_reads))+
-  geom_point(aes(fill = level,group = Block,x=level,y=norm_reads))+
+  geom_boxplot(aes(x=level,y=KGD,fill = level))+
+  geom_line(aes(group = Block,x=level,y=KGD))+
+  geom_point(aes(fill = level,group = Block,x=level,y=KGD))+
   theme_classic()
 
 ggplot(express_table[which(express_table$gene == "SOD"),])+
-  geom_boxplot(aes(x=level,y=norm_reads,fill = level))+
-  geom_line(aes(group = Block,x=level,y=norm_reads))+
-  geom_point(aes(fill = level,group = Block,x=level,y=norm_reads))+
+  geom_boxplot(aes(x=level,y=KGD,fill = level))+
+  geom_line(aes(group = Block,x=level,y=KGD))+
+  geom_point(aes(fill = level,group = Block,x=level,y=KGD))+
   theme_classic()
 
 ggplot(express_table[which(express_table$gene == "GMC_1.1.3.13"),])+
-  geom_boxplot(aes(x=level,y=norm_reads,fill = level))+
-  geom_line(aes(group = Block,x=level,y=norm_reads))+
-  geom_point(aes(fill = level,group = Block,x=level,y=norm_reads))+
+  geom_boxplot(aes(x=level,y=KGD,fill = level))+
+  geom_line(aes(group = Block,x=level,y=KGD))+
+  geom_point(aes(fill = level,group = Block,x=level,y=KGD))+
   theme_classic()
 
 ggplot(express_table[which(express_table$gene == "GMC_1.1.3.7"),])+
-  geom_boxplot(aes(x=level,y=norm_reads,fill = level))+
-  geom_line(aes(group = Block,x=level,y=norm_reads))+
-  geom_point(aes(fill = level,group = Block,x=level,y=norm_reads))+
+  geom_boxplot(aes(x=level,y=KGD,fill = level))+
+  geom_line(aes(group = Block,x=level,y=KGD))+
+  geom_point(aes(fill = level,group = Block,x=level,y=KGD))+
   theme_classic()
 
 ggplot(express_table[which(express_table$gene == "GMC_1.1.99.18"),])+
-  geom_boxplot(aes(x=level,y=norm_reads,fill = level))+
-  geom_line(aes(group = Block,x=level,y=norm_reads))+
-  geom_point(aes(fill = level,group = Block,x=level,y=norm_reads))+
+  geom_boxplot(aes(x=level,y=KGD,fill = level))+
+  geom_line(aes(group = Block,x=level,y=KGD))+
+  geom_point(aes(fill = level,group = Block,x=level,y=KGD))+
   theme_classic()
 
 ggplot(express_table[which(express_table$gene == "GLY"),])+
-  geom_boxplot(aes(x=level,y=norm_reads,fill = level))+
-  geom_line(aes(group = Block,x=level,y=norm_reads))+
-  geom_point(aes(fill = level,group = Block,x=level,y=norm_reads))+
+  geom_boxplot(aes(x=level,y=KGD,fill = level))+
+  geom_line(aes(group = Block,x=level,y=KGD))+
+  geom_point(aes(fill = level,group = Block,x=level,y=KGD))+
   theme_classic()
 
 ggplot(express_table[which(express_table$gene == "CAT"),])+
-  geom_boxplot(aes(x=level,y=norm_reads,fill = level))+
-  geom_line(aes(group = Block,x=level,y=norm_reads))+
-  geom_point(aes(fill = level,group = Block,x=level,y=norm_reads))+
+  geom_boxplot(aes(x=level,y=KGD,fill = level))+
+  geom_line(aes(group = Block,x=level,y=KGD))+
+  geom_point(aes(fill = level,group = Block,x=level,y=KGD))+
   theme_classic()
 
 ggplot(express_table[which(express_table$gene == "ALAS"),])+
-  geom_boxplot(aes(x=level,y=norm_reads,fill = level))+
-  geom_line(aes(group = Block,x=level,y=norm_reads))+
-  geom_point(aes(fill = level,group = Block,x=level,y=norm_reads))+
+  geom_boxplot(aes(x=level,y=KGD,fill = level))+
+  geom_line(aes(group = Block,x=level,y=KGD))+
+  geom_point(aes(fill = level,group = Block,x=level,y=KGD))+
   theme_classic()
 
-ggplot(express_table[which(express_table$gene == "CHIT"),])+
-  geom_boxplot(aes(x=level,y=norm_reads,fill = level))+
-  geom_line(aes(group = Block,x=level,y=norm_reads))+
-  geom_point(aes(fill = level,group = Block,x=level,y=norm_reads))+
+ggplot(express_table[which(express_table$gene == "CHIT_ENDO"),])+
+  geom_boxplot(aes(x=level,y=KGD,fill = level))+
+  geom_line(aes(group = Block,x=level,y=KGD))+
+  geom_point(aes(fill = level,group = Block,x=level,y=KGD))+
+  theme_classic()
+
+ggplot(express_table[which(express_table$gene == "CHIT_EXO"),])+
+  geom_boxplot(aes(x=level,y=KGD,fill = level))+
+  geom_line(aes(group = Block,x=level,y=KGD))+
+  geom_point(aes(fill = level,group = Block,x=level,y=KGD))+
   theme_classic()
 
 ggplot(express_table[which(express_table$gene == "CHSN"),])+
-  geom_boxplot(aes(x=level,y=norm_reads,fill = level))+
-  geom_line(aes(group = Block,x=level,y=norm_reads))+
-  geom_point(aes(fill = level,group = Block,x=level,y=norm_reads))+
+  geom_boxplot(aes(x=level,y=KGD,fill = level))+
+  geom_line(aes(group = Block,x=level,y=KGD))+
+  geom_point(aes(fill = level,group = Block,x=level,y=KGD))+
   theme_classic()
 
 ggplot(express_table[which(express_table$gene == "LACC"),])+
-  geom_boxplot(aes(x=level,y=norm_reads,fill = level))+
-  geom_line(aes(group = Block,x=level,y=norm_reads))+
-  geom_point(aes(fill = level,group = Block,x=level,y=norm_reads))+
+  geom_boxplot(aes(x=level,y=KGD,fill = level))+
+  geom_line(aes(group = Block,x=level,y=KGD))+
+  geom_point(aes(fill = level,group = Block,x=level,y=KGD))+
   theme_classic()
 
 ggplot(express_table[which(express_table$gene == "PROT"),])+
-  geom_boxplot(aes(x=level,y=norm_reads,fill = level))+
-  geom_line(aes(group = Block,x=level,y=norm_reads))+
-  geom_point(aes(fill = level,group = Block,x=level,y=norm_reads))+
+  geom_boxplot(aes(x=level,y=KGD,fill = level))+
+  geom_line(aes(group = Block,x=level,y=KGD))+
+  geom_point(aes(fill = level,group = Block,x=level,y=KGD))+
   theme_classic()
 
 ggplot(express_table[which(express_table$gene == "APEP"),])+
-  geom_boxplot(aes(x=level,y=norm_reads,fill = level))+
-  geom_line(aes(group = Block,x=level,y=norm_reads))+
-  geom_point(aes(fill = level,group = Block,x=level,y=norm_reads))+
+  geom_boxplot(aes(x=level,y=KGD,fill = level))+
+  geom_line(aes(group = Block,x=level,y=KGD))+
+  geom_point(aes(fill = level,group = Block,x=level,y=KGD))+
+  theme_classic()
+
+ggplot(express_table[which(express_table$gene == "OrgN_OPT"),])+
+  geom_boxplot(aes(x=level,y=KGD,fill = level))+
+  geom_line(aes(group = Block,x=level,y=KGD))+
+  geom_point(aes(fill = level,group = Block,x=level,y=KGD))+
+  theme_classic()
+
+ggplot(express_table[which(express_table$gene == "GLUC"),])+
+  geom_boxplot(aes(x=level,y=KGD,fill = level))+
+  geom_line(aes(group = Block,x=level,y=KGD))+
+  geom_point(aes(fill = level,group = Block,x=level,y=KGD))+
+  theme_classic()
+
+ggplot(express_table[which(express_table$gene == "BETA"),])+
+  geom_boxplot(aes(x=level,y=KGD,fill = level))+
+  geom_line(aes(group = Block,x=level,y=KGD))+
+  geom_point(aes(fill = level,group = Block,x=level,y=KGD))+
   theme_classic()
 
 #reduced to top 8 ----
 ##there is some Block/blocks where the difference is much stronger - lets limit to those where difference in norm_readsalized difference is greater than 2 
-which(express_table[which(express_table$gene == "MnP" & express_table$level == "high"),]$norm_reads-express_table[which(express_table$gene == "MnP" & express_table$level == "low"),]$norm_reads > 2)
+select<-which(express_table[which(express_table$gene == "MnP" & express_table$level == "high"),]$KGD-express_table[which(express_table$gene == "MnP" & express_table$level == "low"),]$KGD > 3)
+block<-as.data.frame(express_table[which(express_table$gene == "MnP" & express_table$level == "high"),]$Block)
+block[c(select),]
 
-## Blocks - 1,4,7,8,11,12,15,20
 
-express_table$Block<-gsub("block","",express_table$Block)
-express_table.2<-express_table[which(express_table$Block %in% c(1,4,7,8,11,12,15,20)),]
-express_table.2<-express_table[-which(express_table$Block %in% c(9)),]
+express_table.2<-express_table[which(express_table$Block %in% block[c(select),]),]
+#express_table.2<-express_table[-which(express_table$Block %in% c(9)),]
 
 ggplot(express_table.2)+
-  geom_boxplot(aes(x=gene,y=norm_reads,colour = level))+
+  geom_boxplot(aes(x=gene,y=KGD,colour = level))+
   theme_classic()
 
 ggplot(express_table.2[which(express_table.2$gene == "MnP"),])+
-  geom_boxplot(aes(x=level,y=norm_reads,fill = level))+
-  geom_line(aes(group = Block,x=level,y=norm_reads))+
-  geom_point(aes(fill = level,group = Block,x=level,y=norm_reads))+
+  geom_boxplot(aes(x=level,y=KGD,fill = level))+
+  geom_line(aes(group = Block,x=level,y=KGD))+
+  geom_point(aes(fill = level,group = Block,x=level,y=KGD))+
   theme_classic()
 
 ggplot(express_table.2[which(express_table.2$gene == "KGD"),])+
-  geom_boxplot(aes(x=level,y=norm_reads,fill = level))+
-  geom_line(aes(group = Block,x=level,y=norm_reads))+
-  geom_point(aes(fill = level,group = Block,x=level,y=norm_reads))+
+  geom_boxplot(aes(x=level,y=KGD,fill = level))+
+  geom_line(aes(group = Block,x=level,y=KGD))+
+  geom_point(aes(fill = level,group = Block,x=level,y=KGD))+
   theme_classic()
 
 ggplot(express_table.2[which(express_table.2$gene == "GMC_1.1.3.13"),])+
-  geom_boxplot(aes(x=level,y=norm_reads,fill = level))+
-  geom_line(aes(group = Block,x=level,y=norm_reads))+
-  geom_point(aes(fill = level,group = Block,x=level,y=norm_reads))+
+  geom_boxplot(aes(x=level,y=KGD,fill = level))+
+  geom_line(aes(group = Block,x=level,y=KGD))+
+  geom_point(aes(fill = level,group = Block,x=level,y=KGD))+
   theme_classic()
 
 ggplot(express_table.2[which(express_table.2$gene == "GMC_1.1.3.7"),])+
-  geom_boxplot(aes(x=level,y=norm_reads,fill = level))+
-  geom_line(aes(group = Block,x=level,y=norm_reads))+
-  geom_point(aes(fill = level,group = Block,x=level,y=norm_reads))+
+  geom_boxplot(aes(x=level,y=KGD,fill = level))+
+  geom_line(aes(group = Block,x=level,y=KGD))+
+  geom_point(aes(fill = level,group = Block,x=level,y=KGD))+
   theme_classic()
 
 ggplot(express_table.2[which(express_table.2$gene == "GMC_1.1.99.18"),])+
-  geom_boxplot(aes(x=level,y=norm_reads,fill = level))+
-  geom_line(aes(group = Block,x=level,y=norm_reads))+
-  geom_point(aes(fill = level,group = Block,x=level,y=norm_reads))+
+  geom_boxplot(aes(x=level,y=KGD,fill = level))+
+  geom_line(aes(group = Block,x=level,y=KGD))+
+  geom_point(aes(fill = level,group = Block,x=level,y=KGD))+
   theme_classic()
 
 ggplot(express_table.2[which(express_table.2$gene == "GLY"),])+
-  geom_boxplot(aes(x=level,y=norm_reads,fill = level))+
-  geom_line(aes(group = Block,x=level,y=norm_reads))+
-  geom_point(aes(fill = level,group = Block,x=level,y=norm_reads))+
+  geom_boxplot(aes(x=level,y=KGD,fill = level))+
+  geom_line(aes(group = Block,x=level,y=KGD))+
+  geom_point(aes(fill = level,group = Block,x=level,y=KGD))+
   theme_classic()
 
 ggplot(express_table.2[which(express_table.2$gene == "GT48"),])+
-  geom_boxplot(aes(x=level,y=norm_reads,fill = level))+
-  geom_line(aes(group = Block,x=level,y=norm_reads))+
-  geom_point(aes(fill = level,group = Block,x=level,y=norm_reads))+
+  geom_boxplot(aes(x=level,y=KGD,fill = level))+
+  geom_line(aes(group = Block,x=level,y=KGD))+
+  geom_point(aes(fill = level,group = Block,x=level,y=KGD))+
   theme_classic()
 
 ggplot(express_table.2[which(express_table.2$gene == "ALAS"),])+
-  geom_boxplot(aes(x=level,y=norm_reads,fill = level))+
-  geom_line(aes(group = Block,x=level,y=norm_reads))+
-  geom_point(aes(fill = level,group = Block,x=level,y=norm_reads))+
+  geom_boxplot(aes(x=level,y=KGD,fill = level))+
+  geom_line(aes(group = Block,x=level,y=KGD))+
+  geom_point(aes(fill = level,group = Block,x=level,y=KGD))+
   theme_classic()
 
 ggplot(express_table.2[which(express_table.2$gene == "SOD"),])+
-  geom_boxplot(aes(x=level,y=norm_reads,fill = level))+
-  geom_line(aes(group = Block,x=level,y=norm_reads))+
-  geom_point(aes(fill = level,group = Block,x=level,y=norm_reads))+
+  geom_boxplot(aes(x=level,y=KGD,fill = level))+
+  geom_line(aes(group = Block,x=level,y=KGD))+
+  geom_point(aes(fill = level,group = Block,x=level,y=KGD))+
   theme_classic()
 
 ggplot(express_table.2[which(express_table.2$gene == "CAT"),])+
-  geom_boxplot(aes(x=level,y=norm_reads,fill = level))+
-  geom_line(aes(group = Block,x=level,y=norm_reads))+
-  geom_point(aes(fill = level,group = Block,x=level,y=norm_reads))+
+  geom_boxplot(aes(x=level,y=KGD,fill = level))+
+  geom_line(aes(group = Block,x=level,y=KGD))+
+  geom_point(aes(fill = level,group = Block,x=level,y=KGD))+
   theme_classic()
 
-ggplot(express_table.2[which(express_table.2$gene == "CHIT"),])+
-  geom_boxplot(aes(x=level,y=norm_reads,fill = level))+
-  geom_line(aes(group = Block,x=level,y=norm_reads))+
-  geom_point(aes(fill = level,group = Block,x=level,y=norm_reads))+
+ggplot(express_table.2[which(express_table.2$gene == "CHIT_ENDO"),])+
+  geom_boxplot(aes(x=level,y=KGD,fill = level))+
+  geom_line(aes(group = Block,x=level,y=KGD))+
+  geom_point(aes(fill = level,group = Block,x=level,y=KGD))+
   theme_classic()
 
-ggplot(express_table.2[which(express_table.2$gene == "NAG"),])+
-  geom_boxplot(aes(x=level,y=norm_reads,fill = level))+
-  geom_line(aes(group = Block,x=level,y=norm_reads))+
-  geom_point(aes(fill = level,group = Block,x=level,y=norm_reads))+
+ggplot(express_table.2[which(express_table.2$gene == "CHIT_EXO"),])+
+  geom_boxplot(aes(x=level,y=KGD,fill = level))+
+  geom_line(aes(group = Block,x=level,y=KGD))+
+  geom_point(aes(fill = level,group = Block,x=level,y=KGD))+
   theme_classic()
 
 ggplot(express_table.2[which(express_table.2$gene == "LACC"),])+
-  geom_boxplot(aes(x=level,y=norm_reads,fill = level))+
-  geom_line(aes(group = Block,x=level,y=norm_reads))+
-  geom_point(aes(fill = level,group = Block,x=level,y=norm_reads))+
+  geom_boxplot(aes(x=level,y=KGD,fill = level))+
+  geom_line(aes(group = Block,x=level,y=KGD))+
+  geom_point(aes(fill = level,group = Block,x=level,y=KGD))+
   theme_classic()
 
 ggplot(express_table.2[which(express_table.2$gene == "CHSN"),])+
-  geom_boxplot(aes(x=level,y=norm_reads,fill = level))+
-  geom_line(aes(group = Block,x=level,y=norm_reads))+
-  geom_point(aes(fill = level,group = Block,x=level,y=norm_reads))+
+  geom_boxplot(aes(x=level,y=KGD,fill = level))+
+  geom_line(aes(group = Block,x=level,y=KGD))+
+  geom_point(aes(fill = level,group = Block,x=level,y=KGD))+
   theme_classic()
 
 ggplot(express_table.2[which(express_table.2$gene == "PROT"),])+
-  geom_boxplot(aes(x=level,y=norm_reads,fill = level))+
-  geom_line(aes(group = Block,x=level,y=norm_reads))+
-  geom_point(aes(fill = level,group = Block,x=level,y=norm_reads))+
+  geom_boxplot(aes(x=level,y=KGD,fill = level))+
+  geom_line(aes(group = Block,x=level,y=KGD))+
+  geom_point(aes(fill = level,group = Block,x=level,y=KGD))+
   theme_classic()
 
 ggplot(express_table.2[which(express_table.2$gene == "APEP"),])+
-  geom_boxplot(aes(x=level,y=norm_reads,fill = level))+
-  geom_line(aes(group = Block,x=level,y=norm_reads))+
-  geom_point(aes(fill = level,group = Block,x=level,y=norm_reads))+
+  geom_boxplot(aes(x=level,y=KGD,fill = level))+
+  geom_line(aes(group = Block,x=level,y=KGD))+
+  geom_point(aes(fill = level,group = Block,x=level,y=KGD))+
   theme_classic()
 
+ggplot(express_table.2[which(express_table.2$gene == "OrgN_AAAP"),])+
+  geom_boxplot(aes(x=level,y=KGD,fill = level))+
+  geom_line(aes(group = Block,x=level,y=KGD))+
+  geom_point(aes(fill = level,group = Block,x=level,y=KGD))+
+  theme_classic()
+
+ggplot(express_table.2[which(express_table.2$gene == "OrgN_ACT"),])+
+  geom_boxplot(aes(x=level,y=KGD,fill = level))+
+  geom_line(aes(group = Block,x=level,y=KGD))+
+  geom_point(aes(fill = level,group = Block,x=level,y=KGD))+
+  theme_classic()
+
+ggplot(express_table.2[which(express_table.2$gene == "OrgN_LAT"),])+
+  geom_boxplot(aes(x=level,y=KGD,fill = level))+
+  geom_line(aes(group = Block,x=level,y=KGD))+
+  geom_point(aes(fill = level,group = Block,x=level,y=KGD))+
+  theme_classic()
+
+ggplot(express_table.2[which(express_table.2$gene == "OrgN_OPT"),])+
+  geom_boxplot(aes(x=level,y=KGD,fill = level))+
+  geom_line(aes(group = Block,x=level,y=KGD))+
+  geom_point(aes(fill = level,group = Block,x=level,y=KGD))+
+  theme_classic()
+
+ggplot(express_table.2[which(express_table.2$gene == "GLUC"),])+
+  geom_boxplot(aes(x=level,y=KGD,fill = level))+
+  geom_line(aes(group = Block,x=level,y=KGD))+
+  geom_point(aes(fill = level,group = Block,x=level,y=KGD))+
+  theme_classic()
 
 #scatterplots ----
 
 ##make some wide dfs so that it is easier to plot the normalized read data
 
-norm_wide<-express_table[,-c(4,5)] |>  pivot_wider(names_from = "gene",values_from = norm_reads)
-norm_wide_sub<- express_table.2[,-c(4,5)] |>  pivot_wider(names_from = "gene",values_from = norm_reads)
+norm_wide<-express_table[,-c(4,5,7:11)] |>  pivot_wider(names_from = "gene",values_from = KGD)
+norm_wide_TPM<-express_table[-which(express_table$Block == "block19"),-c(5,7:12)] |>  pivot_wider(names_from = "gene",values_from = sum_TPM)
+norm_wide_sub<- express_table.2[,-c(4,5,7:11)] |>  pivot_wider(names_from = "gene",values_from = KGD)
+
+### sum together the N transporters
+norm_wide$AA<-rowSums(norm_wide[,which(colnames(norm_wide) %in% c("OrgN_AAAP","OrgN_ACT","OrgN_LAT","OrgN_YAT"))])
+norm_wide_sub$AA<-rowSums(norm_wide_sub[,which(colnames(norm_wide_sub) %in% c("OrgN_AAAP","OrgN_ACT","OrgN_LAT","OrgN_YAT"))])
+norm_wide_TPM$AA<-rowSums(norm_wide_TPM[,which(colnames(norm_wide_TPM) %in% c("OrgN_AAAP","OrgN_ACT","OrgN_LAT","OrgN_YAT"))])
+norm_wide$APET<-rowSums(norm_wide[,which(colnames(norm_wide) %in% c("OrgN_POT","OrgN_OPT"))])
+norm_wide_sub$APET<-rowSums(norm_wide_sub[,which(colnames(norm_wide_sub) %in% c("OrgN_POT","OrgN_OPT"))])
+norm_wide_TPM$APET<-rowSums(norm_wide_TPM[,which(colnames(norm_wide_TPM) %in% c("OrgN_POT","OrgN_OPT"))])
 
 #growth vs MnP
 plot(norm_wide$MnP,norm_wide$GT48)+text(norm_wide$MnP,norm_wide$GT48,labels = paste(norm_wide$level,norm_wide$Block))
 #resp vs MnP
 plot(norm_wide$MnP,norm_wide$KGD)+text(norm_wide$MnP,norm_wide$KGD,labels = paste(norm_wide$level,norm_wide$Block))
 #chitin break down vs MnP
-plot(norm_wide$MnP,norm_wide$NAG)+text(norm_wide$MnP,norm_wide$NAG,labels = paste(norm_wide$level,norm_wide$Block))
+plot(norm_wide$MnP,norm_wide$CHIT_ENDO)+text(norm_wide$MnP,norm_wide$CHIT_ENDO,labels = paste(norm_wide$level,norm_wide$Block))
+plot(norm_wide$MnP,norm_wide$CHIT_EXO)+text(norm_wide$MnP,norm_wide$CHIT_EXO,labels = paste(norm_wide$level,norm_wide$Block))
+norm_wide$CHIT<-norm_wide$CHIT_ENDO+norm_wide$CHIT_EXO
 plot(norm_wide$MnP,norm_wide$CHIT)+text(norm_wide$MnP,norm_wide$CHIT,labels = paste(norm_wide$level,norm_wide$Block))
-norm_wide$NAGCHIT<-norm_wide$NAG+norm_wide$CHIT
-plot(norm_wide$MnP,norm_wide$NAGCHIT)+text(norm_wide$MnP,norm_wide$NAGCHIT,labels = paste(norm_wide$level,norm_wide$Block))
 #relationship between NAG and endo chitinase
-plot(norm_wide$NAG,norm_wide$CHIT)+text(norm_wide$NAG,norm_wide$CHIT,labels = paste(norm_wide$level,norm_wide$Block))
+plot(norm_wide$CHIT_ENDO,norm_wide$CHIT_EXO)+text(norm_wide$CHIT_ENDO,norm_wide$CHIT_EXO,labels = paste(norm_wide$level,norm_wide$Block))
 #chintin synthase vs mnp
 plot(norm_wide$MnP,norm_wide$CHSN)+text(norm_wide$MnP,norm_wide$CHSN,labels = paste(norm_wide$level,norm_wide$Block))
 #chitin synthase vs chitin break down
-plot(norm_wide$CHSN,norm_wide$NAGCHIT)+text(norm_wide$CHSN,norm_wide$NAGCHIT,labels = paste(norm_wide$level,norm_wide$Block))
+plot(norm_wide$CHSN,norm_wide$CHIT)+text(norm_wide$CHSN,norm_wide$CHIT,labels = paste(norm_wide$level,norm_wide$Block))
 #proteases vs mnp
 plot(norm_wide$MnP,norm_wide$PROT)+text(norm_wide$MnP,norm_wide$PROT,labels = paste(norm_wide$level,norm_wide$Block))
 #proteases vs aminopeptidaes
 plot(norm_wide$APEP,norm_wide$PROT)+text(norm_wide$APEP,norm_wide$PROT,labels = paste(norm_wide$level,norm_wide$Block))
+#transport vs peptidases
+plot(norm_wide$APEP,norm_wide$OrgN_OPT)+text(norm_wide$APEP,norm_wide$OrgN_OPT,labels = paste(norm_wide$level,norm_wide$Block))
+plot(norm_wide$PROT,norm_wide$OrgN_OPT)+text(norm_wide$PROT,norm_wide$OrgN_OPT,labels = paste(norm_wide$level,norm_wide$Block))
+plot(norm_wide$PROT,norm_wide$AA)+text(norm_wide$PROT,norm_wide$AA,labels = paste(norm_wide$level,norm_wide$Block))
 #laccases vs mnp
 plot(norm_wide$MnP,norm_wide$LACC)+text(norm_wide$MnP,norm_wide$LACC,labels = paste(norm_wide$level,norm_wide$Block))
 #growth vs respiration
 plot(norm_wide$GT48,norm_wide$KGD)+text(norm_wide$GT48,norm_wide$KGD,labels = paste(norm_wide$level,norm_wide$Block))
+#Mnp vs heme
+plot(norm_wide$MnP,norm_wide$ALAS)+text(norm_wide$MnP,norm_wide$ALAS,labels = paste(norm_wide$level,norm_wide$Block))
+#Mnp vs glucan
+plot(norm_wide$MnP,norm_wide$GLUC)+text(norm_wide$MnP,norm_wide$GLUC,labels = paste(norm_wide$level,norm_wide$Block))
 
 
 #Catalase vs super oxide dismutase
@@ -291,6 +356,39 @@ plot(norm_wide$GMC_1.1.3.13,norm_wide$GLY)+text(norm_wide$GMC_1.1.3.13,norm_wide
 plot(norm_wide$GMC_1.1.3.7,norm_wide$GLY)+text(norm_wide$GMC_1.1.3.7,norm_wide$GLY,labels = paste(norm_wide$level,norm_wide$Block))
 plot(norm_wide$GMC_1.1.99.18,norm_wide$GLY)+text(norm_wide$GMC_1.1.99.18,norm_wide$GLY,labels = paste(norm_wide$level,norm_wide$Block))
 
+### sum together the N transporters
+norm_wide$AA<-rowSums(norm_wide[,which(colnames(norm_wide) %in% c("OrgN_AAAP","OrgN_ACT","OrgN_LAT","OrgN_YAT"))])
+norm_wide_sub$AA<-rowSums(norm_wide_sub[,which(colnames(norm_wide_sub) %in% c("OrgN_AAAP","OrgN_ACT","OrgN_LAT","OrgN_YAT"))])
+norm_wide$APET<-rowSums(norm_wide[,which(colnames(norm_wide) %in% c("OrgN_POT","OrgN_OPT"))])
+norm_wide_sub$APET<-rowSums(norm_wide_sub[,which(colnames(norm_wide_sub) %in% c("OrgN_POT","OrgN_OPT"))])
+
+ggplot(norm_wide_sub)+
+  geom_boxplot(aes(x=level,y=AA,fill = level))+
+  geom_line(aes(group = Block,x=level,y=AA))+
+  geom_point(aes(fill = level,group = Block,x=level,y=AA))+
+  theme_classic()
+
+ggplot(norm_wide_sub)+
+  geom_boxplot(aes(x=level,y=APET,fill = level))+
+  geom_line(aes(group = Block,x=level,y=APET))+
+  geom_point(aes(fill = level,group = Block,x=level,y=APET))+
+  theme_classic()
+
+#sum together GMC
+norm_wide$GMC_sum<- rowSums(norm_wide[,grepl("GMC",colnames(norm_wide))])
+norm_wide_sub$GMC_sum<- rowSums(norm_wide_sub[,grepl("GMC",colnames(norm_wide))])
+
+ggplot(norm_wide_sub)+
+  geom_boxplot(aes(x=level,y=GMC_sum,fill = level))+
+  geom_line(aes(group = Block,x=level,y=GMC_sum))+
+  geom_point(aes(fill = level,group = Block,x=level,y=GMC_sum))+
+  theme_classic()
+
+ggplot(norm_wide)+
+  geom_boxplot(aes(x=level,y=GMC_sum,fill = level))+
+  geom_line(aes(group = Block,x=level,y=GMC_sum))+
+  geom_point(aes(fill = level,group = Block,x=level,y=GMC_sum))+
+  theme_classic()
 
 #CUE vs MnP
 norm_wide$CUE<-norm_wide$KGD/norm_wide$GT48
@@ -319,6 +417,7 @@ plot(norm_wide$CUE,norm_wide$PROT)+text(norm_wide$CUE,norm_wide$PROT,labels = pa
 ggplot(norm_wide)+
   geom_point(aes(x=CUE,y=MnP))+
   theme_classic()
+
 ##test if its a unimodel relationship
 fit<-lm(MnP~CUE+I(CUE^2),data=norm_wide)
 prd <- data.frame(CUE = seq(from = range(norm_wide$CUE)[1], to = range(norm_wide$CUE)[2], length.out = 100))
@@ -336,7 +435,7 @@ ggplot(prd, aes(x = CUE, y = fit)) +
 
 ##multivvariate analysis ----
 
-multi<- metaMDS(norm_wide[,-c(1,2,3,4)],autotransform = FALSE)
+multi<- metaMDS(norm_wide[,-c(1,2,3)],autotransform = FALSE)
 multi
 data.scores <- as.data.frame(scores(multi,"sites"))  #Using the scores function from vegan to extract the site scores and convert to a data.frame
 data.scores$site <- rownames(data.scores)  # create a column of site names, from the rownames of data.scores
@@ -354,7 +453,7 @@ ggplot() +
   coord_equal() +
   theme_bw()
 
-multi<- metaMDS(norm_wide_sub[,-c(1,2,3,4,13)],autotransform = FALSE)
+multi<- metaMDS(norm_wide_sub[,-c(1,2,3,12)],autotransform = FALSE)
 multi
 data.scores <- as.data.frame(scores(multi,"sites"))  #Using the scores function from vegan to extract the site scores and convert to a data.frame
 data.scores$site <- rownames(data.scores)  # create a column of site names, from the rownames of data.scores
