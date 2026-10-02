@@ -3,58 +3,12 @@ library(tidyverse)
 library(patchwork)
 
 #read in and clean ----
-express_table<-read_csv("clean_data/gene_interest_express_GC.csv")
-
-express_table$gene<-as.factor(express_table$gene)
-express_table$level<-as.factor(express_table$level)
-express_table$Block<-as.factor(express_table$Block)
-
-express_table<-express_table[-which(express_table$Block == "block19"),]
-
-##reduce ----
-##there is some Block/blocks where the difference is much stronger - lets limit to those where difference in KGD is greater than 3  
-select<-which(express_table[which(express_table$gene == "MnP" & express_table$level == "high"),]$KGD-express_table[which(express_table$gene == "MnP" & express_table$level == "low"),]$KGD > 3)
-block<-as.data.frame(express_table[which(express_table$gene == "MnP" & express_table$level == "high"),]$Block)
-block[c(select),]
-
-express_table.2<-express_table[which(express_table$Block %in% block[c(select),]),]
-
-##wide dfs ----
-norm_wide<-express_table[,-c(5,7:12)] |>  pivot_wider(names_from = "gene",values_from = sum_TPM)
-norm_wide_sub<- express_table.2[,-c(5,7:12)] |>  pivot_wider(names_from = "gene",values_from = sum_TPM)
-
-##combine ---- 
-norm_wide$AA<-rowSums(norm_wide[,which(colnames(norm_wide) %in% c("OrgN_AAAP","OrgN_ACT","OrgN_LAT","OrgN_YAT"))])
-norm_wide_sub$AA<-rowSums(norm_wide_sub[,which(colnames(norm_wide_sub) %in% c("OrgN_AAAP","OrgN_ACT","OrgN_LAT","OrgN_YAT"))])
-norm_wide$APET<-rowSums(norm_wide[,which(colnames(norm_wide) %in% c("OrgN_POT","OrgN_OPT"))])
-norm_wide_sub$APET<-rowSums(norm_wide_sub[,which(colnames(norm_wide_sub) %in% c("OrgN_POT","OrgN_OPT"))])
-norm_wide$GMC_sum<- rowSums(norm_wide[,grepl("GMC",colnames(norm_wide))])
-norm_wide_sub$GMC_sum<- rowSums(norm_wide_sub[,grepl("GMC",colnames(norm_wide_sub))])
-norm_wide$CHIT_sum<- rowSums(norm_wide[,grepl("CHIT",colnames(norm_wide))])
-norm_wide_sub$CHIT_sum<- rowSums(norm_wide_sub[,grepl("CHIT",colnames(norm_wide_sub))])
-
-##CUE ----
-
-#sum_reads
-#reads_wide<-express_table[,-c(4,7:12)] |>  pivot_wider(names_from = "gene",values_from = sum_reads)
-#reads_wide_sub<- express_table.2[,-c(4,7:12)] |>  pivot_wider(names_from = "gene",values_from = sum_reads)
-#make ratio
-norm_wide$CUE<-norm_wide$GT48/norm_wide$KGD
-norm_wide_sub$CUE<-norm_wide_sub$GT48/norm_wide_sub$KGD
-
-
+norm_wide<-read_csv("clean_data/norm_wide_clean.csv")
+norm_wide_sub<-read_csv("clean_data/norm_wide_sub_clean.csv")
 
 #Paired plots ----
 
 ## MnP ----
-
-MnP_sub<-ggplot(norm_wide_sub)+
-  geom_boxplot(aes(x=level,y=MnP,fill = level))+
-  geom_line(aes(group = Block,x=level,y=MnP))+
-  geom_point(aes(fill = level,group = Block,x=level,y=MnP))+
-  annotate("segment",x=1,xend = 2,y=30,yend =30,linewidth=1)+
-  annotate("text",x=1.5,y=31,label="p = 0.004",size=5)+
-  theme_classic()
 
 MnP_all<-ggplot(norm_wide)+
   geom_boxplot(aes(x=level,y=MnP,fill = level))+
@@ -63,9 +17,6 @@ MnP_all<-ggplot(norm_wide)+
   annotate("segment",x=1,xend = 2,y=30,yend =30,linewidth=1)+
   annotate("text",x=1.5,y=31,label="p = 0.002",size=5)+
   theme_classic()
-
-
-MnP_all+MnP_sub+plot_annotation(tag_levels = "a")
 
 ## growth----
 
@@ -167,6 +118,12 @@ CHIT_NAG_sub<-ggplot(norm_wide_sub)+
   geom_point(aes(fill = level,group = Block,x=level,y=CHIT_3.2.1.52))+
   theme_classic()
 
+CHIT_NAGt<-ggplot(norm_wide_sub)+
+  geom_boxplot(aes(x=level,y=NAGt,fill = level))+
+  geom_line(aes(group = Block,x=level,y=NAGt))+
+  geom_point(aes(fill = level,group = Block,x=level,y=NAGt))+
+  theme_classic()
+
 CHIT_inase_sub+CHIT_deace_sub+CHIT_NAG_sub+plot_annotation(tag_levels = "a")
 
 ####sup 1 high v low all ----
@@ -239,267 +196,339 @@ APET_all<-ggplot(norm_wide)+
 
 GT48_all+CHSN_all+ALAS_all+LACC_all+GLY_all+GMC_all+PROT_all+APEP_all+AA_all+APET_all+CHIT_all+plot_annotation(tag_levels = "a")
 
-
-
 #Scatter plots ----
-
-#assumptions
-list_gene<-list(c(colnames(norm_wide[,-c(1:3,7,8,12,13,14,29:32)])))
-results<-list()
-p_value_ass<-list()
-
-for (i in 1:20){
-  results[[i]]<-shapiro.test(unlist(norm_wide[,which(colnames(norm_wide) %in% list_gene[[1]][[i]])]))
-  p_value_ass[[i]]<-results[[i]]$p.value
-}  
-
-results<-data.frame(round(unlist(p_value_ass),3),unlist(list_gene))
-non_norm<-results[which(results$round.unlist.p_value_ass...3. < 0.05),] #OrgN POT is barely expressed so I will exclude
-
-##check non_normal distributions
-hist(log10(norm_wide$ALAS))
-hist(norm_wide$GMC_1.1.3.13)#seems fine
-hist(log10(norm_wide$GLUC))
-hist(log10(norm_wide$LACC))
-hist(log10(norm_wide$OrgN_LAT))
-hist(log10(norm_wide$OrgN_OPT))
-hist(log10(norm_wide$CHIT_3.5.1.41))
-
-norm_wide$ALAS_log<-log10(norm_wide$ALAS)
-norm_wide$LACC_log<-log10(norm_wide$LACC)
-norm_wide$OrgN_LAT_log<-log10(norm_wide$OrgN_LAT)
-norm_wide$OrgN_OPT_log<-log10(norm_wide$OrgN_OPT)
-norm_wide$CHIT_deace_log<-log10(norm_wide$CHIT_3.5.1.41)
-norm_wide$GLUC_log<-log10(norm_wide$GLUC)
-
-list_gene_norm<-list(c(colnames(norm_wide[,c(33:38)])))
-results<-list()
-p_value_ass<-list()
-
-for (i in 1:6){
-  results[[i]]<-shapiro.test(unlist(norm_wide[,which(colnames(norm_wide) %in% list_gene_norm[[1]][[i]])]))
-  p_value_ass[[i]]<-results[[i]]$p.value
-}  
-
-results<-data.frame(round(unlist(p_value_ass),3),unlist(list_gene_norm))
-logged_non_norm<-results[which(results$round.unlist.p_value_ass...3. < 0.05),] #OrgN POT is barely expressed so I will exclude
-#fixed
+#test assmuptions in LM script
 
 ##growth/CUE vs MnP ----
 
-GT48_reg<-ggplot(norm_wide,aes(x=sqrt(MnP),y=log10(GT48)))+
+GT48_reg<-ggplot(norm_wide,aes(x=sqrt(MnP),y=sqrt(GT48)))+
   geom_point()+
   geom_smooth(method = "lm")+
   ylab(label = "GT48 / KGD ")+
   xlab(label = "MnP / KGD")+
   theme_classic()
 
-KGD_reg<-ggplot(norm_wide,aes(x=sqrt(MnP),y=log10(KGD)))+
+KGD_reg<-ggplot(norm_wide,aes(x=sqrt(MnP),y=sqrt(KGD)))+
   geom_point()+
   geom_smooth(method = "lm")+
-  ylab(label = "KGD (log-transformed)")+
-  xlab(label = "sqrt(MnP)")+
+  ylab(label = "KGD")+
+  xlab(label = "MnP")+
   theme_classic()
 
 CUE_reg<-ggplot(norm_wide,aes(x=sqrt(MnP),y=CUE))+
   geom_point()+
   geom_smooth(method = "lm")+
   ylab(label = "CUE = GT48/KGD")+
+  xlab(label = "MnP")+
   theme_classic()
 
 
-##CUE vs others ----
+##KGD vs others ----
 
-CUE_v_PROT_sub<-ggplot(norm_wide,aes(y=CUE,x=PROT))+
+CUE_v_PROT_sub<-ggplot(norm_wide,aes(y=sqrt(KGD),x=sqrt(PROT)))+
   geom_point()+
   geom_smooth(method = "lm")+
-  ylab(label = "CUE / KGD ")+
-  xlab(label = "A1 Proteases / KGD")+
+  ylab(label = "KGD ")+
+  xlab(label = "A1 Proteases")+
   theme_classic()
 
-CUE_v_GMC_1_sub<-ggplot(norm_wide,aes(y=KGD,x=GMC_1.1.3.13))+
+CUE_v_GMC_1_sub<-ggplot(norm_wide,aes(y=sqrt(KGD),x=sqrt(GMC_AOx)))+
   geom_point()+
   geom_smooth(method = "lm")+
-  ylab(label = "CUE / KGD ")+
-  xlab(label = "Alcohol oxidase / KGD")+
+  ylab(label = "KGD ")+
+  xlab(label = "Alcohol oxidases")+
   theme_classic()
 
-CUE_v_GMC_2_sub<-ggplot(norm_wide,aes(y=KGD,x=GMC_1.1.3.7))+
+CUE_v_GMC_2_sub<-ggplot(norm_wide,aes(y=sqrt(KGD),x=sqrt(GMC_AAO)))+
   geom_point()+
   geom_smooth(method = "lm")+
-  #ylab(label = "CUE / KGD ")+
-  #xlab(label = "Aryl-alcohol oxidase / KGD")+
+  ylab(label = "KGD ")+
+  xlab(label = "Aryl-alcohol oxidases")+
   theme_classic()
 
-CUE_v_GMC_3_sub<-ggplot(norm_wide,aes(y=CUE,x=GMC_1.1.99.18))+
+CUE_v_GMC_2_sub<-ggplot(norm_wide,aes(y=sqrt(KGD),x=sqrt(GMC_GDH)))+
+  geom_point()+
+  geom_smooth(method = "lm")+
+  ylab(label = "KGD ")+
+  xlab(label = "GDH")+
+  theme_classic()
+
+CUE_v_ALAS<-ggplot(norm_wide,aes(y=sqrt(KGD),x=sqrt(ALAS)))+
   geom_point()+
   geom_smooth(method = "lm",se=FALSE,linetype=2)+
-  ylab(label = "CUE / KGD ")+
-  xlab(label = "Cellobiose dehydrogenase / KGD")+
+  ylab(label = "KGD")+
+  xlab(label = "ALAS")+
   theme_classic()
-
 
 ##chitin break down vs MnP ----
 
-CHIT_deace_reg<-ggplot(norm_wide,aes(x=MnP,y=CHIT_3.5.1.41))+
+CHIT_deace_reg<-ggplot(norm_wide,aes(x=sqrt(MnP),y=sqrt(CHIT_3.5.1.41)))+
   geom_point()+
-  geom_smooth(method = "lm",se=FALSE,linetype=2)+
-  ylab(label = "Chitin deacetylase / KGD (log-transformed)")+
-  xlab(label = "MnP / KGD")+
-  theme_classic()
+  #geom_smooth(method = "lm",se=FALSE,linetype=2)+
+  ylab(label = "Chitin deacetylases")+
+  xlab(label = "")+
+  theme_classic()+
+  theme(axis.title.y = element_text(size = 16))
 
-CHIT_inase_reg<-ggplot(norm_wide,aes(x=MnP,y=CHIT_3.2.1.14))+
-  geom_point()+
-  geom_smooth(method = "lm",se=FALSE,linetype=2)+
-  ylab(label = "Chitinase / KGD ")+
-  xlab(label = "MnP / KGD")+
-  theme_classic()
-
-CHIT_NAG_reg<-ggplot(norm_wide,aes(x=MnP,y=CHIT_3.2.1.52))+
+CHIT_inase_reg<-ggplot(norm_wide,aes(x=sqrt(MnP),y=sqrt(CHIT_3.2.1.14)))+
   geom_point()+
   geom_smooth(method = "lm")+
-  ylab(label = "NAG / KGD ")+
-  xlab(label = "MnP / KGD")+
-  theme_classic()
+  ylab(label = "Chitinases")+
+  xlab(label = "MnP")+
+  theme_classic()+
+  theme(axis.title.y = element_text(size = 16),axis.title.x = element_text(size = 16))
 
+CHIT_NAG_reg<-ggplot(norm_wide,aes(x=sqrt(MnP),y=sqrt(CHIT_3.2.1.52)))+
+  geom_point()+
+  geom_smooth(method = "lm",se=FALSE,linetype=2)+
+  ylab(label = "NAG")+
+  xlab(label = "MnP")+
+  theme_classic()+
+  theme(axis.title.y = element_text(size = 16),axis.title.x = element_text(size = 16))
+
+CHIT_NAGt_reg<-ggplot(norm_wide,aes(x=sqrt(MnP),y=sqrt(NAGt)))+
+  geom_point()+
+  geom_smooth(method = "lm",se=FALSE,linetype=2)+
+  ylab(label = "NAGt")+
+  xlab(label = "MnP")+
+  theme_classic()+
+  theme(axis.title.y = element_text(size = 16),axis.title.x = element_text(size = 16))
+
+CHIT_NAGt_reg<-ggplot(norm_wide,aes(x=sqrt(CHIT_3.2.1.52),y=sqrt(NAGt)))+
+  geom_point()+
+  geom_smooth(method = "lm",se=FALSE,linetype=2)+
+  ylab(label = "NAGt")+
+  xlab(label = "NAG")+
+  theme_classic()+
+  theme(axis.title.y = element_text(size = 16),axis.title.x = element_text(size = 16))
 
 
 ##N breakdown and transport vs mnp ----
-PROT_reg<-ggplot(norm_wide,aes(x=sqrt(MnP),y=log10(PROT)))+
+#tiff(filename = "figures/asp_prot_pres.tiff",height = 1000,width = 1500,units = "px",res = 300)
+PROT_reg<-ggplot(norm_wide,aes(x=sqrt(MnP),y=sqrt(PROT)))+
   geom_point()+
   geom_smooth(method = "lm")+
-  ylab(label = "A1 Proteases (log10-transformed)")+
-  xlab(label = "sqrt(MnP)")+
-  theme_classic()
+  ylab(label = "Aspartic Proteases")+
+  xlab(label = "")+
+  theme_classic()+
+  theme(axis.title.y = element_text(size = 16))
 
-APEP_reg<-ggplot(norm_wide,aes(x=MnP,y=APEP))+
+APEP_reg<-ggplot(norm_wide,aes(x=sqrt(MnP),y=sqrt(APEP)))+
+  geom_point()+
+  #geom_smooth(method = "lm",se=FALSE,linetype=2)+
+  ylab(label = "Aminopeptidases")+
+  xlab(label = "")+
+  theme_classic()+
+  theme(axis.title.y = element_text(size = 16))
+
+OrgN_AAAP_reg<-ggplot(norm_wide,aes(x=sqrt(MnP),y=sqrt(OrgN_AAAP)))+
   geom_point()+
   geom_smooth(method = "lm")+
-  ylab(label = "Aminopeptidases / KGD ")+
-  xlab(label = "MnP / KGD")+
-  theme_classic()
+  ylab(label = "Amino acid/auxin \n porters")+
+  xlab(label = "")+
+  theme_classic()+
+  theme(axis.title.y = element_text(size = 16))
 
-OrgN_AAAP_reg<-ggplot(norm_wide,aes(x=sqrt(MnP),y=log10(OrgN_AAAP)))+
+OrgN_ACT_reg<-ggplot(norm_wide,aes(x=sqrt(MnP),y=sqrt(OrgN_ACT)))+
   geom_point()+
-  geom_smooth(method = "lm")+
-  ylab(label = "AAAP amino acid transport (2.A.18) (log10-transformed) ")+
-  xlab(label = "sqrt(MnP)")+
-  theme_classic()
+  #geom_smooth(method = "lm")+
+  theme_classic()+
+  theme(axis.title.y = element_text(size = 16))
 
-OrgN_ACT_reg<-ggplot(norm_wide,aes(x=MnP,y=OrgN_ACT))+
-  geom_point()+
-  geom_smooth(method = "lm")+
-  theme_classic()
-
-OrgN_LAT_reg<-ggplot(norm_wide,aes(x=MnP,y=OrgN_LAT))+
+OrgN_LAT_reg<-ggplot(norm_wide,aes(x=sqrt(MnP),y=sqrt(OrgN_LAT)))+
   geom_point()+
   geom_smooth(method = "lm",se=FALSE,linetype=2)+
-  theme_classic()
+  ylab(label = "L-type amino acid \n transporters")+
+  xlab(label = "")+
+  theme_classic()+
+  theme(axis.title.y = element_text(size = 16))
 
-OrgN_YAT_reg<-ggplot(norm_wide,aes(x=MnP,y=OrgN_YAT))+
+OrgN_YAT_reg<-ggplot(norm_wide,aes(x=sqrt(MnP),y=sqrt(OrgN_YAT)))+
   geom_point()+
-  geom_smooth(method = "lm",se=FALSE,linetype=2)+
-  theme_classic()
+  #geom_smooth(method = "lm",se=FALSE,linetype=2)+
+  theme_classic()+
+  theme(axis.title.y = element_text(size = 16))
 
-OrgN_OPT_reg<-ggplot(norm_wide,aes(x=sqrt(MnP),y=log10(OrgN_OPT)))+
+OrgN_AAT_reg<-ggplot(norm_wide,aes(x=sqrt(MnP),y=sqrt(OrgN_AAT)))+
+  geom_point()+
+  #geom_smooth(method = "lm",se=FALSE,linetype=2)+
+  theme_classic()+
+  theme(axis.title.y = element_text(size = 16))
+
+OrgN_OPT_reg<-ggplot(norm_wide,aes(x=sqrt(MnP),y=sqrt(OrgN_OPT)))+
   geom_point()+
   geom_smooth(method = "lm")+
-  ylab(label = "OPT oligopeptide transport (2.A.67) (log10-transformed) ")+
-  xlab(label = "sqrt(MnP)")+
+  ylab(label = "Oligopeptide \n transporters")+
+  xlab(label = "")+
+  theme_classic()+
+  theme(axis.title.y = element_text(size = 16))
+
+OrgN_POT_reg<-ggplot(norm_wide,aes(x=sqrt(MnP),y=sqrt(OrgN_POT)))+
+  geom_point()+
+  geom_smooth(method = "lm")+
+  ylab(label = "POT")+
+  xlab(label = "MnP")+
   theme_classic()
 
 
 ##laccases vs mnp ----
-LACC_reg<-ggplot(norm_wide,aes(x=MnP,y=LACC))+
+LACC_reg<-ggplot(norm_wide,aes(x=sqrt(MnP),y=sqrt(LACC)))+
   geom_point()+
   geom_smooth(method = "lm",se=FALSE,linetype=2)+
   theme_classic()
 
 ##Mnp vs heme ----
-ALAS_reg<-ggplot(norm_wide,aes(x=sqrt(MnP),y=log(ALAS)))+
+ALAS_reg<-ggplot(norm_wide,aes(x=sqrt(MnP),y=sqrt(ALAS)))+
   geom_point()+
   geom_smooth(method = "lm")+
-  ylab(label = "ALAS / KGD (log-transformed)")+
-  xlab(label = "MnP / KGD")+
+  ylab(label = "ALAS")+
+  xlab(label = "MnP")+
   theme_classic()
 
 ##GMC vs MnP ----
-GMC_1_reg<-ggplot(norm_wide,aes(x=sqrt(MnP),y=log10(GMC_1.1.3.13)))+
+GMC_1_reg<-ggplot(norm_wide,aes(x=sqrt(MnP),y=sqrt(GMC_AOx)))+
   geom_point()+
-  geom_smooth(method = "lm")+
-  ylab(label = "Alcohol oxidase (log-transformed) ")+
-  xlab(label = "sqrt(MnP) ")+
+  geom_smooth(method = "lm",se=FALSE,linetype=2)+
+  ylab(label = "GMC AA3_3 (AOx)")+
+  xlab(label = "MnP")+
   theme_classic()
 
-GMC_2_reg<-ggplot(norm_wide,aes(x=sqrt(MnP),y=log10(GMC_1.1.3.7)))+
+GMC_2_reg<-ggplot(norm_wide,aes(x=sqrt(MnP),y=sqrt(GMC_AAO)))+
   geom_point()+
   geom_smooth(method = "lm")+
-  ylab(label = "Aryl-alcohol oxidase (log-transformed) ")+
-  xlab(label = "sqrt(MnP)")+
+  ylab(label = "GMC AA3_2 (AAO/PDH-like)")+
+  xlab(label = "MnP")+
   theme_classic()
 
-GMC_3_reg<-ggplot(norm_wide,aes(x=sqrt(MnP),y=log10(GMC_1.1.99.18)))+
+GMC_3_reg<-ggplot(norm_wide,aes(x=sqrt(MnP),y=sqrt(GMC_GDH)))+
+  geom_point()+
+  #geom_smooth(method = "lm",se=FALSE,linetype=2)+
+  ylab(label = "GMC AA3_2 (GDH-like)")+
+  xlab(label = "MnP")+
+  theme_classic()
+
+## trehalose vs MnP ----
+TASE_reg<-ggplot(norm_wide,aes(x=sqrt(MnP),y=sqrt(TASE)))+
   geom_point()+
   geom_smooth(method = "lm")+
-  ylab(label = "Cellobiose dehydrogenase / KGD ")+
-  xlab(label = "MnP / KGD")+
+  ylab(label = "Trehalase")+
+  xlab(label = "MnP")+
+  theme_classic()
+
+TPP_reg<-ggplot(norm_wide,aes(x=sqrt(MnP),y=sqrt(TPP)))+
+  geom_point()+
+  geom_smooth(method = "lm",se=FALSE,linetype=2)+
+  ylab(label = "TPP")+
+  xlab(label = "MnP")+
+  theme_classic()
+
+TPS_reg<-ggplot(norm_wide,aes(x=sqrt(MnP),y=sqrt(TPS)))+
+  geom_point()+
+  geom_smooth(method = "lm",se=FALSE,linetype=2)+
+  ylab(label = "TPS")+
+  xlab(label = "MnP")+
+  theme_classic()
+
+TASE_TPP_reg<-ggplot(norm_wide,aes(x=sqrt(MnP),y=TASE_TPP))+
+  geom_point()+
+  geom_smooth(method = "lm")+
+  ylab(label = "Trehalase/TPP")+
+  xlab(label = "MnP")+
+  theme_classic()
+
+TASE/TPP_reg<-ggplot(norm_wide,aes(x=sqrt(KGD),y=TASE_TPP))+
+  geom_point()+
+  geom_smooth(method = "lm")+
+  ylab(label = "Trehalase/TPP")+
+  xlab(label = "KGD")+
+  theme_classic()
+
+TASE_vs_AAO_reg<-ggplot(norm_wide,aes(x=sqrt(TASE),y=sqrt(GMC_AAO)))+
+  geom_point()+
+  geom_smooth(method = "lm")+
+  ylab(label = "GMC AA3_2 (AAO/PDH-like)")+
+  xlab(label = "Trehalose")+
+  theme_classic()
+
+TASE_vs_GDH_reg<-ggplot(norm_wide,aes(x=sqrt(TASE),y=sqrt(GMC_GDH)))+
+  geom_point()+
+  geom_smooth(method = "lm")+
+  ylab(label = "GMC AA3_2 (GDH-like)")+
+  xlab(label = "Trehalose")+
+  theme_classic()
+
+TASE_vs_AoX_reg<-ggplot(norm_wide,aes(x=sqrt(TASE),y=sqrt(GMC_AOx)))+
+  geom_point()+
+  geom_smooth(method = "lm")+
+  ylab(label = "GMC AA3_3")+
+  xlab(label = "Trehalose")+
+  theme_classic()
+
+TASE/TPS_vs_AAO_reg<-ggplot(norm_wide,aes(x=sqrt(GMC_AAO),y=TASE_TPP))+
+  geom_point()+
+  geom_smooth(method = "lm")+
+  ylab(label = "Trehalase/TPP")+
+  xlab(label = "GMC AA3_2 (AAO/PDH-like)")+
   theme_classic()
 
 ##CRO vs MnP ----
-GLY_reg<-ggplot(norm_wide,aes(x=MnP,y=GLY))+
+GLY_reg<-ggplot(norm_wide,aes(x=sqrt(MnP),y=sqrt(GLY)))+
   geom_point()+
-  geom_smooth(method = "lm",se=FALSE,linetype=2)+
-  ylab(label = "Copper radical oxidases / KGD ")+
-  xlab(label = "MnP / KGD")+
+  #geom_smooth(method = "lm",se=FALSE,linetype=2)+
+  ylab(label = "Copper radical oxidases")+
+  xlab(label = "MnP")+
   theme_classic()
 
 ##C breakdown vs MnP ----
-BETA_reg<-ggplot(norm_wide,aes(x=MnP,y=BETA))+
+BETA_reg<-ggplot(norm_wide,aes(x=sqrt(MnP),y=sqrt(BETA)))+
   geom_point()+
-  geom_smooth(method = "lm",se=FALSE,linetype=2)+
-  ylab(label = "Beta-glucosidase (EC 3.2.1.21) / KGD ")+
-  xlab(label = "MnP / KGD")+
+  #geom_smooth(method = "lm",se=FALSE,linetype=2)+
+  ylab(label = expression(""*beta*"-glucosidases (EC 3.2.1.21)"))+
+  xlab(label = "MnP")+
   theme_classic()
 
-GLUC_reg<-ggplot(norm_wide,aes(x=MnP,y=GLUC))+
+GLUC_reg<-ggplot(norm_wide,aes(x=sqrt(MnP),y=sqrt(GLUC)))+
   geom_point()+
-  geom_smooth(method = "lm",se=FALSE,linetype=2)+
-  ylab(label = "Glucanases (EC 3.2.1.58) / KGD ")+
-  xlab(label = "MnP / KGD")+
+  #geom_smooth(method = "lm",se=FALSE,linetype=2)+
+  ylab(label = expression("Glucan1,3-"*beta*"-glucosidases (EC 3.2.1.58)"))+
+  xlab(label = "MnP")+
   theme_classic()
 
 
-#figure 1 ----
+## TCA vs TASE/TPS/TPS
 
-tiff(filename = "figures/figure_1.tiff")
-GT48_reg
+
 
 #figure 2 ----
-tiff(filename = "figures/figure_2.tiff")
-PROT_reg+APEP_reg+OrgN_AAAP_reg+OrgN_OPT_reg+plot_annotation(tag_levels = "a")
 
+tiff(filename = "figures/figure_2.tiff",height = 1000,width = 2500,units = "px",res = 300)
+CUE_reg+KGD_reg+plot_annotation(tag_levels = "a")
+#CUE_reg+ inset_element(KGD_reg, 0.6,0.01,1,0.4)
+
+#figure x ----
+tiff(filename = "figures/figure_NPS_pres_TPS_TASE.tiff",height = 1000,width = 1250,units = "px",res = 300)
+TASE_TPP_reg
+PROT_reg+OrgN_OPT_reg
+PROT_reg+OrgN_OPT_reg+APEP_reg+OrgN_AAAP_reg+plot_annotation(tag_levels = "a")
 
 #figure 3 ----
 
-tiff(filename = "figures/figure_3.tiff")
-GMC_1_reg+GMC_2_reg+GMC_3_reg+GLY_reg+plot_annotation(tag_levels = "a")
+tiff(filename = "figures/figure_3.tiff",height = 2000,width = 2500,units = "px",res = 300)
+GMC_2_reg+GMC_1_reg+GMC_3_reg+GLY_reg+plot_annotation(tag_levels = "a")+plot_layout(nrow = 2)
 
+#figure x ----
+tiff(filename = "figures/figure_x2.tiff")
+CHIT_deace_reg+CHIT_inase_reg+CHIT_NAG_reg+plot_annotation(tag_levels = "a")+plot_layout(nrow = 2)
+
+#figure 4 ----
+tiff(filename = "figures/figure_4.tiff", width = 3000,height = 4000, units = "px",res = 300)
+PROT_reg+OrgN_OPT_reg+OrgN_AAAP_reg+OrgN_LAT_reg+APEP_reg+
+  CHIT_deace_reg+CHIT_inase_reg+CHIT_NAG_reg+plot_annotation(tag_levels = "a")+plot_layout(ncol = 2)
 
 #figures sub ----
 
-tiff(filename = "figures/figures_s1.tiff")
+tiff(filename = "figures/figures_s1.tiff",height = 1000,width = 3000,units = "px",res = 300)
 BETA_reg+GLUC_reg+plot_annotation(tag_levels = "a")
 
 tiff(filename = "figures/figures_s2.tiff")
-GT48_v_PROT_sub|(GT48_v_GMC_1_sub/GT48_v_GMC_2_sub/GT48_v_GMC_3_sub)+plot_annotation(tag_levels = "a")
-
-tiff(filename = "figures/figures_s3.tiff")
 ALAS_reg
-
-tiff(filename = "figures/figures_s4.tiff")
-CHIT_deace_reg+CHIT_inase_reg+CHIT_NAG_reg+plot_annotation(tag_levels = "a")
-
-
-
-write_csv(norm_wide,"clean_data/norm_wide_clean.csv")
-write_csv(norm_wide_sub,"clean_data/norm_wide_sub_clean.csv")
