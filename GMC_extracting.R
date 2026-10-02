@@ -58,12 +58,12 @@ length(unique(jgi_alignment_hits_GMC$Hit)) #so only 23 actually
 
 length(which(GMC$proteinId %in% jgi_alignment_hits_GMC$Hit))#and all of those I already identifed
 
-##now I can select which GMC it is based on highest blast
+##now I can select which GMC it is based on highest blast - changing to score
 GMC_protID_list<-as.list(GMC$proteinId)
 Blast_result<-list()
 for (i in 1:nrow(GMC)){
 Blast_result[[i]]<-jgi_alignment_hits_GMC[which(jgi_alignment_hits_GMC$Hit == GMC_protID_list[[i]]),]
-Blast_result[[i]]<-Blast_result[[i]][which(Blast_result[[i]]$`% Hit Identity` == max(Blast_result[[i]]$`% Hit Identity`)),c(1,3,8,9)]
+Blast_result[[i]]<-Blast_result[[i]][which(Blast_result[[i]]$Score == max(Blast_result[[i]]$Score)),c(1,3,8,9)]
 }
 
 blast<-bind_rows(Blast_result)
@@ -75,7 +75,6 @@ GMC$ecNum <-if_else(grepl("Alcohol oxidase",GMC$blast),"1.1.3.13",if_else(grepl(
 #not in blast but assigned by EC and/or KOG
 nohit_GMC<-GMC[-which(GMC$proteinId %in% jgi_alignment_hits_GMC$Hit),]
 
-
 #now see if they are excreted
 
 GMC_sigP<-Coromn1_FilteredModels1_sigp6[which(Coromn1_FilteredModels1_sigp6$protein_id %in% GMC$proteinId),]
@@ -83,5 +82,18 @@ GMC$sigP<-rep(NA,nrow(GMC))
 GMC[match(GMC_sigP$protein_id,GMC$proteinId),]$sigP <- GMC_sigP$sp_prob
 GMC[which(GMC$proteinId %in% GMC_sigP$protein_id),]$sigP <- c(rep("sigP",11))
 
+## I made updates to gene models for protein 1984530 and 1749753, which had a chimera and some exon/intron gaps missed, respectively
+##manually change the proteinID numbers so that they will match with the new salmon results - this doesn't change their tree placement 
+
+GMC[which(GMC$proteinId == "1984530"),]$proteinId <- 1850569
+GMC[which(GMC$proteinId == "1749753"),]$proteinId <- 1682818
+
+write_csv(GMC,"clean_data/GMC_clean.csv")
+
+##I then also made a tree with these sequences and based on how this was I made some adjustments to the classificatoin
+
+GMC<-read_delim("clean_data/GMC_clean_plus_tree_annotation.csv",delim = ";")
+#the ones with NA were short and kinda have one motif but not confident of there annotation - fragements or allelic variants 
+GMC<-GMC[-which(is.na(GMC$`AA_#`)),]
 
 write_csv(GMC,"clean_data/GMC_clean.csv")
